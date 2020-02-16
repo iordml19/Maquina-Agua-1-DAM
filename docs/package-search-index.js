@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"org.maquinavending"},{"l":"org.maquinavending.exceptions"},{"l":"org.maquinavending.utilidad"}]
