@@ -2,10 +2,10 @@ package org.maquinavending;
 
 /**
  * Clase que representa a una Moneda
- * @author Jesús
+ * @author Jesús Reyes Carrillo
  * @version 1.0
  */
-public class Moneda {
+public class Moneda{
     private double valor;
 
     public Moneda(double valor){
@@ -22,4 +22,5 @@ public class Moneda {
                 "valor=" + valor +
                 '}';
     }
+
 }

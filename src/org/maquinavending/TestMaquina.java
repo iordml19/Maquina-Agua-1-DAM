@@ -12,7 +12,7 @@ import java.util.Scanner;
 
 /**
  * Clase principal
- * @author Oscar Gómez
+ * @author Oscar García Gómez
  * @author Iordache Mihai Laurentiu
  * @version 1.0
  * Revisión: Iordache Mihai Laurentiu
@@ -60,7 +60,7 @@ public class TestMaquina {
     /**
      * Menú de la aplicación
      * @param opcion La opción del usuario
-     * @author Oscar
+     * @author Oscar García Gómez
      * Revisión: Iordache Mihai Laurentiu
      */
     public void menu(int opcion){
@@ -84,7 +84,7 @@ public class TestMaquina {
                 break;
             }
             case CAMBIO_DISPONIBLE: {
-                System.out.println("Cambio disponible: " + maquina.cambioDisponible() + "€");
+                System.out.println("\nCambio disponible: " + Math.round(maquina.cambioDisponible() * 10.0) / 10.0 + "€");
                 this.opciones();
 
                 System.out.println();

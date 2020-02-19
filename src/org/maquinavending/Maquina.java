@@ -1,11 +1,9 @@
 package org.maquinavending;
 
-import org.maquinavending.exceptions.ImporteExactoException;
-import org.maquinavending.exceptions.ImporteInsuficienteException;
-import org.maquinavending.exceptions.MaquinaVaciaException;
-import org.maquinavending.exceptions.MonedaNoValidaException;
+import org.maquinavending.exceptions.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.ListIterator;
 
@@ -29,6 +27,7 @@ public class Maquina implements Comprable {
      */
     {
         ArrayList<Moneda> monedas = new ArrayList<>();
+
         for (int i = 0; i < 10; i++){
             monedas.add(new Moneda(0.10));
         }
@@ -36,6 +35,7 @@ public class Maquina implements Comprable {
         for (int i = 0; i < 5; i++){
             monedas.add(new Moneda(0.20));
         }
+
 
         for (int i = 0; i < 4; i++){
             monedas.add(new Moneda(0.50));
@@ -50,7 +50,6 @@ public class Maquina implements Comprable {
     }
 
     /**
-     * Constructor de la máquina.
      * @param productos Los productos a introducir en la máquina
      */
     public Maquina(ArrayList<Producto> productos){
@@ -58,6 +57,7 @@ public class Maquina implements Comprable {
         this.productos.addAll(productos);
         //this.productos.add(new BebidaEnergetica(TipoProducto.Bebida_Energetica, 1.50, 1.50));
         //this.productos.add(new Snack(TipoProducto.Snack, 1.5, 0.5));
+        //this.productos.add(new BebidaEstimulante(TipoProducto.Bebida_Estimulante, 2, 1.00));
     }
 
     /**
@@ -87,12 +87,21 @@ public class Maquina implements Comprable {
                     this.cambioAdevolver = cantidadIntroducida - producto.getPrecio();
                     this.cambioAdevolver = Math.round(this.cambioAdevolver * 10.0) / 10.0;
 
-                    if (this.cambioAdevolver <= this.cantidadDineroCambio()){
-                        double cantidad = this.devolverCambio();
-                        System.out.println("\nCompra realizada con éxito. Producto adquirido: " + this.nombreDelProducto(producto.getClass().getSimpleName(), "de", true));
-                        System.out.println("\nCambio: " + String.format("%.2f", cantidad) + "€");
-                        this.productos.remove(producto);
-                        this.compraFinalizada = true;
+                    // && !(cantidadIntroducida == producto.getPrecio() && this.cantidadDineroCambio() < cantidadIntroducida)
+                    if (this.cambioAdevolver <= this.cantidadDineroCambio() ){
+
+                        try{
+                            double cantidad = this.devolverCambio();
+                            System.out.println("\nCompra realizada con éxito. Producto adquirido: " + this.nombreDelProducto(producto.getClass().getSimpleName(), "de", true));
+                            System.out.println("\nCambio: " + String.format("%.2f", cantidad) + "€");
+
+                            this.productos.remove(producto);
+                            this.compraFinalizada = true;
+                        }catch(NoHayMonedasCambioException e){
+                            this.compraFinalizada = false;
+                            System.out.println(e.getMessage() + " " + cantidadIntroducida + " €");
+                        }
+
                     }else{
                         throw new ImporteExactoException("\nLo sentimos pero la máquina no dispone de cambio suficiente. Como consecuencia," +
                                 " se ha cancelado la compra y se le ha integrado el importe introducido\nReintegro: " + cantidadIntroducida + "€");
@@ -310,26 +319,112 @@ public class Maquina implements Comprable {
     }
 
     /**
+     * Método estático que suma los valores del subconjunto de las monedas de cambio
+     * @param array El array con los subconjuntos
+     * @return La suma de los valores del subconjunto
+     */
+    private static double sumarValorMonedasDisponibles(ArrayList<Double> array) {
+        double contador = 0;
+
+        for (Double val : array) {
+            contador += val;
+        }
+
+        return contador;
+    }
+
+    /**
      * Método privado que se encarga de devolver el cambio al comprador
      * @return El cambio del comprador
      * Revisión: Iordache Mihai Laurentiu
      */
-    private double devolverCambio(){
+    private double devolverCambio() throws NoHayMonedasCambioException{
         double cantidadADevolverAcumulada = 0;
 
-        ListIterator<Moneda> monedaListIterator = this.monedasCambio.listIterator();
+        ArrayList<Double> valoresMonedas = new ArrayList<>();
 
-        while (monedaListIterator.hasNext() ){
-            Moneda m = monedaListIterator.next();
+        for (Moneda value : this.monedasCambio) {
+            valoresMonedas.add(value.getValor());
+        }
 
-            if (this.cambioAdevolver != Math.round(cantidadADevolverAcumulada * 10.0)/10.0){
-                cantidadADevolverAcumulada += Math.round(m.getValor() * 10.0) / 10.0;
-                monedaListIterator.remove();
+        ArrayList<Double> monedasCambiar = monedasCambioUsuario(valoresMonedas, this.cambioAdevolver);
+
+        if (this.cambioAdevolver >= 1){
+            Collections.reverse(monedasCambiar);
+        }
+
+        // CASOS ESPECIALES
+        if (monedasCambiar.isEmpty() && (this.cambioAdevolver == 0.30 || this.cambioAdevolver == 0.90)){
+            Moneda monedaCambio = null;
+
+            ListIterator<Moneda> iteradorMonedasCambio = this.monedasCambio.listIterator();
+
+            while (iteradorMonedasCambio.hasNext()){
+                Moneda m = iteradorMonedasCambio.next();
+                if (this.cambioAdevolver == 0.30){
+                    if (m.getValor() == 0.20 || m.getValor() == 0.10){
+                        monedaCambio = m;
+                        if (this.cambioAdevolver != Math.round(cantidadADevolverAcumulada * 10.0) / 10.0){
+                            cantidadADevolverAcumulada += monedaCambio.getValor();
+                            iteradorMonedasCambio.remove();
+                        }
+                    }
+                }else{
+                    if (m.getValor() == 0.20 || m.getValor() == 0.10 || m.getValor() == 0.50){
+                        monedaCambio = m;
+                        if (this.cambioAdevolver != Math.round(cantidadADevolverAcumulada * 10.0) / 10.0){
+                            cantidadADevolverAcumulada += monedaCambio.getValor();
+                            iteradorMonedasCambio.remove();
+                        }
+                    }
+                }
+            }
+        }
+
+        // CASOS NORMALES
+        for (Double d : monedasCambiar) {
+
+            if (Math.round(cantidadADevolverAcumulada * 10.0) / 10.0 != this.cambioAdevolver){
+                cantidadADevolverAcumulada += d;
+
+                Moneda m = null;
+
+                for (Moneda moneda : this.monedasCambio) {
+                    if (moneda.getValor() == d) m = moneda;
+                }
+
+               if (m != null ) this.monedasCambio.remove(m);
             }
 
         }
 
-        return cantidadADevolverAcumulada;
+        if (cantidadADevolverAcumulada != this.cambioAdevolver && Math.round(cantidadADevolverAcumulada * 10.0) / 10.0 == 0.00){
+            throw new NoHayMonedasCambioException("\nLo sentimos pero su compra ha sido cancelada debido a que la máquina no dispone de las " +
+                    " monedas necesarias para ofrecerle cambio a pesar de existir cambio. Se le ha reintegrado el importe:");
+        }
+
+        return Math.round(cantidadADevolverAcumulada * 10.0) / 10.0;
+    }
+
+    /**
+     * Método estático que busca los subconjuntos del cambio del usuario
+     * @param arr El array en el que buscar subconjuntos
+     * @param suma La suma a buscar, en este caso, el cambio del usuario
+     * @return Un arraylist con los subconjuntos
+     */
+    private static ArrayList<Double> monedasCambioUsuario(ArrayList<Double> arr, double suma) {
+        ArrayList<Double> ar = new ArrayList<>();
+
+        for (int i = 0; i < arr.size(); i++) {
+            ArrayList<Double> temp = new ArrayList<>();
+
+            for (int j = i; j < arr.size(); j++) {
+                temp.add(arr.get(j));
+                if (sumarValorMonedasDisponibles(temp) == suma) ar.addAll(temp);
+            }
+        }
+
+        return ar;
     }
 
     /**

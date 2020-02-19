@@ -2,7 +2,7 @@ package org.maquinavending;
 
 /**
  * Clase que representa una Botella de Agua
- * @author Jesús
+ * @author Jesús  Reyes Carrillo
  * @version 1.0
  */
 public class BotellaAgua extends Producto {
