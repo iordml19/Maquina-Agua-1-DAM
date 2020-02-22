@@ -5,7 +5,7 @@ package org.maquinavending;
  * @author Jesús  Reyes Carrillo
  * @version 1.0
  */
-public class BotellaAgua extends Producto {
+public final class BotellaAgua extends Producto {
 
     /**
      * Construye una botella

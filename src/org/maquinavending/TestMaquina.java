@@ -18,7 +18,7 @@ import java.util.Scanner;
  * Revisión: Iordache Mihai Laurentiu
  */
 
-public class TestMaquina {
+public final class TestMaquina {
     public static final int COMPRAR_PRODUCTO = 1;
     public static final int CAMBIO_DISPONIBLE = 2;
     public static final int SALIR = 3;

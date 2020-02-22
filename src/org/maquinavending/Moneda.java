@@ -5,7 +5,7 @@ package org.maquinavending;
  * @author Jesús Reyes Carrillo
  * @version 1.0
  */
-public class Moneda{
+public final class Moneda{
     private double valor;
 
     public Moneda(double valor){

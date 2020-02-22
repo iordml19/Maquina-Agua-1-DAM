@@ -14,7 +14,7 @@ import java.util.ListIterator;
  * Revisión: Iordache Mihai Laurentiu
  */
 
-public class Maquina implements Comprable {
+public final class Maquina implements Comprable {
     private ArrayList<Producto> productos;
     private ArrayList<Moneda> monedasCambio = new ArrayList<>(25);
     private HashMap<Integer, String> productosDisponibles = new HashMap<>();

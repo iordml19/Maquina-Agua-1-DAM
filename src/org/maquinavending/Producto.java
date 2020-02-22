@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
  * @version 1.0
  * Revisión: Iordache Mihai Laurentiu
  */
-abstract public class Producto{
+public abstract class Producto{
     private TipoProducto producto;
     private double precio;
     private double peso;
