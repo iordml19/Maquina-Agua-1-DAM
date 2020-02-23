@@ -150,7 +150,7 @@ public final class Maquina implements Comprable {
                          ". Cantidad: " + Producto.contarProductos(this.productos, Class.forName("org.maquinavending." + clases))
                      */
 
-                    System.out.println(indiceProducto + ".- " +  (clases.contains("Botella") ? this.nombreDelProducto(clases, "de", true) :
+                    System.out.println(indiceProducto + ".- " +  (clases.contains("Botella") || clases.contains("Bebida") || clases.contains("Batido") ? this.nombreDelProducto(clases, "de", true) :
                             this.nombreDelProducto(clases, "", false))
                     + " de " + this.getPesoProducto(clases) + " " + this.getUnidadProducto(clases) + ". Precio: " + this.getPrecioProducto(clases) + "€");
 
@@ -212,7 +212,8 @@ public final class Maquina implements Comprable {
     private String getUnidadProducto(String clase){
         for (Producto producto : this.productos) {
             if (producto.getClass().getSimpleName().equals(clase) &&
-                    (producto.getClass().getSimpleName().contains("Botella") || producto.getClass().getSimpleName().contains("Bebida"))) return "L";
+                    (producto.getClass().getSimpleName().contains("Botella") || producto.getClass().getSimpleName().contains("Bebida")) ||
+                    producto.getClass().getSimpleName().contains("Batido")) return "L";
         }
 
         return "KG";
@@ -443,6 +444,13 @@ public final class Maquina implements Comprable {
         return this.productos.isEmpty();
     }
 
+    /**
+     * Método público no instanciable utilizado para añadir mas productos a la venta
+     * @param productos El arrayList de Productos a añadir
+     */
+    public void agnadirProductos(ArrayList<Producto> productos){
+        this.productos.addAll(productos);
+    }
     /**
      * Dice si la compra está finalizada
      * @return true o false en función del valor de la propiedad

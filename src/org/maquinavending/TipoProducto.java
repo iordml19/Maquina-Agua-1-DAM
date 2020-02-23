@@ -13,5 +13,6 @@ public enum TipoProducto {
     Bebida_Gaseosa,
     Bebida_Estimulante,
     Bebida_Energetica,
-    Snack
+    Snack,
+    Batido_Frutas
 }
