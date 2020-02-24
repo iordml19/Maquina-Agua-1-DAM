@@ -67,57 +67,65 @@ public final class Maquina implements Comprable {
      * @throws MonedaNoValidaException Lanzada en caso de que la moneda sea una de las no aceptadas por la máquina
      * @throws ImporteInsuficienteException Lanzada en caso de que el importe del usuario no sea suficiente
      * @throws ImporteExactoException Lanzada en caso de que la máquina no disponga de cambio
+     * @throws NullPointerException Lanzada en caso de que el producto sea nulo (Hecho para pruebas unitarias)
      * Revisión: Iordache Mihai Laurentiu
      */
     @Override
-    public void comprar(Producto producto, ArrayList<Moneda> monedas) throws MonedaNoValidaException, ImporteInsuficienteException, ImporteExactoException{
-        boolean sonMonedasValidas = this.sonMonedasValidas(monedas);
+    public void comprar(Producto producto, ArrayList<Moneda> monedas) throws MonedaNoValidaException, ImporteInsuficienteException, ImporteExactoException, NullPointerException{
+        if (producto == null) throw new NullPointerException("El producto que ha indicado no es válido");
 
-        if(sonMonedasValidas){
-            boolean puedeComprar = true;
+        try{
+            boolean sonMonedasValidas = this.sonMonedasValidas(monedas);
+            if(sonMonedasValidas){
+                boolean puedeComprar = true;
 
-            // Efectuar compra
-            double cantidadIntroducida = this.contarMonedasIntroducidas(monedas);
+                // Efectuar compra
+                double cantidadIntroducida = this.contarMonedasIntroducidas(monedas);
 
-            if (cantidadIntroducida < producto.getPrecio()) puedeComprar = false;
+                if (cantidadIntroducida < producto.getPrecio()) puedeComprar = false;
 
-            if (puedeComprar){
+                if (puedeComprar){
 
-                if (cantidadIntroducida >= producto.getPrecio()){
-                    this.cambioAdevolver = cantidadIntroducida - producto.getPrecio();
-                    this.cambioAdevolver = Math.round(this.cambioAdevolver * 10.0) / 10.0;
+                    if (cantidadIntroducida >= producto.getPrecio()){
+                        this.cambioAdevolver = cantidadIntroducida - producto.getPrecio();
+                        this.cambioAdevolver = Math.round(this.cambioAdevolver * 10.0) / 10.0;
 
-                    // && !(cantidadIntroducida == producto.getPrecio() && this.cantidadDineroCambio() < cantidadIntroducida)
-                    if (this.cambioAdevolver <= this.cantidadDineroCambio() ){
+                        // && !(cantidadIntroducida == producto.getPrecio() && this.cantidadDineroCambio() < cantidadIntroducida)
+                        if (this.cambioAdevolver <= this.cantidadDineroCambio() ){
 
-                        try{
-                            double cantidad = this.devolverCambio();
-                            System.out.println("\nCompra realizada con éxito. Producto adquirido: " + this.nombreDelProducto(producto.getClass().getSimpleName(), "de", true));
-                            System.out.println("\nCambio: " + String.format("%.2f", cantidad) + "€");
+                            try{
+                                double cantidad = this.devolverCambio();
+                                System.out.println("\nCompra realizada con éxito. Producto adquirido: " + this.nombreDelProducto(producto.getClass().getSimpleName(), "de", true));
+                                System.out.println("\nCambio: " + String.format("%.2f", cantidad) + "€");
 
-                            this.productos.remove(producto);
-                            this.compraFinalizada = true;
-                        }catch(NoHayMonedasCambioException e){
-                            this.compraFinalizada = false;
-                            System.out.println(e.getMessage() + " " + cantidadIntroducida + " €");
+                                this.productos.remove(producto);
+                                this.compraFinalizada = true;
+                            }catch(NoHayMonedasCambioException e){
+                                this.compraFinalizada = false;
+                                System.out.println(e.getMessage() + " " + cantidadIntroducida + " €");
+                            }
+
+                        }else{
+                            throw new ImporteExactoException("\nLo sentimos pero la máquina no dispone de cambio suficiente. Como consecuencia," +
+                                    " se ha cancelado la compra y se le ha integrado el importe introducido\nReintegro: " + cantidadIntroducida + "€");
                         }
 
-                    }else{
-                        throw new ImporteExactoException("\nLo sentimos pero la máquina no dispone de cambio suficiente. Como consecuencia," +
-                                " se ha cancelado la compra y se le ha integrado el importe introducido\nReintegro: " + cantidadIntroducida + "€");
                     }
 
+                }else{
+                    throw new ImporteInsuficienteException("\nDebe introducir la cantidad solicitada para adquirir el producto." +
+                            "\n\nSe le solicita introducir: " + producto.getPrecio() + "€. Cantidad introducida: " + cantidadIntroducida + "€");
                 }
 
             }else{
-                throw new ImporteInsuficienteException("\nDebe introducir la cantidad solicitada para adquirir el producto." +
-                        "\n\nSe le solicita introducir: " + producto.getPrecio() + "€. Cantidad introducida: " + cantidadIntroducida + "€");
+                throw new MonedaNoValidaException("\nHa introducido monedas no validas. Su dinero ha sido devuelto. Cantidad: " +
+                        this.contarMonedasIntroducidas(monedas) + "€.\nMonedas Aceptadas: 0.10€, 0.20€, 0.50€. 1€ y 2€");
             }
-
-        }else{
-            throw new MonedaNoValidaException("\nHa introducido monedas no validas. Su dinero ha sido devuelto. Cantidad: " +
-                    this.contarMonedasIntroducidas(monedas) + "€.\nMonedas Aceptadas: 0.10€, 0.20€, 0.50€. 1€ y 2€");
+        }catch(NullPointerException e){
+            // Para pruebas unitarias
+            System.out.println("\n"+e.getMessage());
         }
+
     }
 
     /**
@@ -258,9 +266,12 @@ public final class Maquina implements Comprable {
      * @param monedas Las monedas del comprador
      * @return true o false indicando si son validas o no
      */
-    private boolean sonMonedasValidas(ArrayList<Moneda> monedas){
+    private boolean sonMonedasValidas(ArrayList<Moneda> monedas) throws NullPointerException{
 
         for (Moneda moneda : monedas) {
+
+            if (moneda == null) throw new NullPointerException("Ha introducido monedas no válidas");
+
             if (moneda.getValor() != 0.10 && moneda.getValor() != 0.20
                 && moneda.getValor() != 0.50  && moneda.getValor() != 1.00
                 && moneda.getValor() != 2.00) return false;
@@ -449,8 +460,9 @@ public final class Maquina implements Comprable {
      * @param productos El arrayList de Productos a añadir
      */
     public void agnadirProductos(ArrayList<Producto> productos){
-        this.productos.addAll(productos);
+        if (productos != null) this.productos.addAll(productos);
     }
+
     /**
      * Dice si la compra está finalizada
      * @return true o false en función del valor de la propiedad

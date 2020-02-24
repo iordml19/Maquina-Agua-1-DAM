@@ -69,6 +69,11 @@ public final class TestMaquina {
             case COMPRAR_PRODUCTO:{
 
                 try {
+
+                    for (Producto p : this.maquina.getProductos()){
+                        if (p == null) throw new MaquinaVaciaException("\nLo sentimos! En este momento no disponemos de ningún producto a la venta!");
+                    }
+
                     this.maquina.productosDisponibles();
                     this.productoAComprar = this.sc.nextInt();
                 } catch (ClassNotFoundException e) {
